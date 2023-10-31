@@ -150,7 +150,7 @@ def get_scores(gt_labels: Dict[str, str], prediction_labels: Dict[str, str],
     preds = []
 
     for file in sorted(gt_labels.keys()):
-        # Temporary fix. Need not to make folders with no crops.
+        # Temporary fix. Need to not make folders with no crops.
         try:
             gt_label = gt_labels[file]
             pred_label = prediction_labels[file]
@@ -165,7 +165,7 @@ def get_scores(gt_labels: Dict[str, str], prediction_labels: Dict[str, str],
             class_to_gt_count[gt_label] += 1
         except KeyError:
             print(
-                "WARNING: One of the image directories is empty. Skipping this directory."
+                "WARNING: One of the image directories is empty. Skipping this directory. get_scores file = " + file
             )
             continue
 
@@ -382,7 +382,7 @@ def visualize(wsi_folder: Path, preds_folder: Path, vis_folder: Path,
         # Confirm the output directory exists.
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Temporary fix. Need not to make folders with no crops.
+        # Temporary fix. Need to not make folders with no crops.
         try:
             # Add the predictions to the image and save it.
             imsave(uri=output_path,
@@ -395,7 +395,7 @@ def visualize(wsi_folder: Path, preds_folder: Path, vis_folder: Path,
                        patch_size=patch_size))
         except FileNotFoundError:
             print(
-                "WARNING: One of the image directories is empty. Skipping this directory"
+                "WARNING: One of the image directories is empty. Skipping this directory. (visualize)"
             )
             continue
 
