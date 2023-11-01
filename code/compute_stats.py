@@ -69,7 +69,7 @@ def compute_stats(folderpath: Path,
             return len(self.data)
 
     def online_mean_and_sd(
-        loader: torch.utils.data.DataLoader, report_interval: int=1000
+        loader: torch.utils.data.DataLoader, report_interval: int=10000
                            ) -> Tuple[List[float], List[float]]:
         """
         Computes the mean and standard deviation online.
