@@ -149,11 +149,6 @@ def get_scores(gt_labels: Dict[str, str], prediction_labels: Dict[str, str],
     gts = []
     preds = []
 
-    print("\nget_scores gt_labels:")
-    print(gt_labels)
-    print("\nget_scores prediction_labels:")
-    print(prediction_labels)
-
     for file in sorted(gt_labels.keys()):
         # Temporary fix. Need to not make folders with no crops.
         try:
