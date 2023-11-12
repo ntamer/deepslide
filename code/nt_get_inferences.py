@@ -7,7 +7,7 @@ import os
 print("\n\n+++++ Running nt_get_inferences.py +++++")
 print("\n----- Reading best thresholds -----")
 thresholds_folder=config.args.inference_test
-ls_output = os.popen('ls {thresholds_folder}/*').read()
+ls_output = os.listdir(thresholds_folder)
 # Split the output into a list of strings
 files = ls_output.splitlines()
 # Get the first file in the list (there should only be one file)
