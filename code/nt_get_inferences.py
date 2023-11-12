@@ -14,7 +14,10 @@ first_file = ls_output[0]
 print('Thresholds file: ' + first_file)
 best_thresholds = parse_thresholds(Path(first_file))
 print(best_thresholds)
-os.rename(first_file, first_file + '_training')
+renamed_file = Path(first_file + '_training')
+csv_path = thresholds_folder / first_file
+renamed_path = thresholds_folder / renamed_file
+os.rename(csv_path, renamed_path)
 print("----- Finished reading best thresholds -----\n")
 print("----- Outputting all predictions -----")
 output_all_predictions(patches_pred_folder=config.args.preds_test,
