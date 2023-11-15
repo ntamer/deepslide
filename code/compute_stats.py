@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import (List, Tuple)
-
+import math
 
 import torch
 from PIL import Image
@@ -104,7 +104,7 @@ def compute_stats(folderpath: Path,
         print(f"Pixel Count: {cnt}; Mean: {temp_mean}; STD: {temp_std}")
         # Check for NaN values and set them to a small threshold (e.g., 1e-6)
         for i in range(len(temp_std)):
-            if torch.isnan(temp_std[i]):
+            if math.isnan(temp_std[i]):
                 temp_std[i]=1e-6
         return temp_mean, temp_std
 
