@@ -103,7 +103,9 @@ def compute_stats(folderpath: Path,
         temp_std = torch.sqrt(snd_moment - fst_moment**2).tolist()
         print(f"Pixel Count: {cnt}; Mean: {temp_mean}; STD: {temp_std}")
         # Check for NaN values and set them to a small threshold (e.g., 1e-6)
-        temp_std = [x if not torch.isnan(x) else 1e-6 for x in temp_std]
+        for i in range(len(temp_std)):
+            if torch.isnan(temp_std[i]):
+                temp_std[i]=1e-6
         return temp_mean, temp_std
 
     return online_mean_and_sd(
