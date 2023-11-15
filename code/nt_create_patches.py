@@ -6,6 +6,16 @@ from utils_processing import produce_patches
 #                  MAIN                   #
 ###########################################
 print("\n\n+++++ Running nt_create_patches.py +++++")
+print(f"  input_folder={config.args.wsi_test}")
+print(f"  output_folder={config.args.patches_eval_test")
+print(f"  inverse_overlap_factor={config.args.slide_overlap")
+print(f"  by_folder={config.args.by_folder")
+print(f"  num_workers={config.args.num_workers")
+print(f"  patch_size={config.args.patch_size")
+print(f"  purple_threshold={config.args.purple_threshold")
+print(f"  purple_scale_size={config.args.purple_scale_size")
+print(f"  image_ext={config.args.image_ext")
+print(f"  type_histopath={config.args.type_histopath")
 print("----- Generating test evaluation patches -----")
 # Generate test evaluation patches.
 produce_patches(input_folder=config.args.wsi_test,
