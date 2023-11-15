@@ -69,7 +69,7 @@ def compute_stats(folderpath: Path,
             return len(self.data)
 
     def online_mean_and_sd(
-        loader: torch.utils.data.DataLoader, report_interval: int=10000
+        loader: torch.utils.data.DataLoader, report_interval: int=1000
                            ) -> Tuple[List[float], List[float]]:
         """
         Computes the mean and standard deviation online.
@@ -99,8 +99,12 @@ def compute_stats(folderpath: Path,
                 temp_mean = fst_moment.tolist()
                 temp_std = torch.sqrt(snd_moment - fst_moment**2).tolist()
                 print(f"Mean: {temp_mean}; STD: {temp_std} at iter: {i}")
-        return fst_moment.tolist(), torch.sqrt(snd_moment -
-                                               fst_moment**2).tolist()
+        temp_mean = fst_moment.tolist()
+        temp_std = torch.sqrt(snd_moment - fst_moment**2).tolist()
+        print(f"Pixel Count: {cnt}; Mean: {temp_mean}; STD: {temp_std}")
+        # Check for NaN values and set them to a small threshold (e.g., 1e-6)
+        temp_std = [x if not torch.isnan(x) else 1e-6 for x in temp_std]
+        return temp_mean, temp_std
 
     return online_mean_and_sd(
         loader=torch.utils.data.DataLoader(
