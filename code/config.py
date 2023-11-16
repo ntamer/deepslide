@@ -13,6 +13,8 @@ import torch
 from compute_stats import compute_stats
 from utils import (get_classes, get_log_csv_name)
 
+import os
+
 # Source: https://stackoverflow.com/questions/12151306/argparse-way-to-include-default-values-in-help
 parser = argparse.ArgumentParser(
     description="DeepSlide",
@@ -365,8 +367,47 @@ train_patches = args.train_folder.joinpath("train")
 val_patches = args.train_folder.joinpath("val")
 
 # Compute the mean and standard deviation of the image patches from the specified folder.
-path_mean, path_std = compute_stats(folderpath=train_patches,
-                                    image_ext=args.image_ext)
+# If a file of saved mean and standard deviation exists, use the saved values.
+file_path = 'saved_stats.csv'
+if os.path.exists(file_path):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    file.close()
+    stats_lists = []
+    try:
+        with open(file_path, 'r') as file:
+            for line in file:
+                # Split the line by commas and convert each part to a float
+                numbers = [float(num.strip()) for num in line.split(',')]
+                stats_lists.append(numbers)
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
+    except ValueError:
+        print("Error: Each line in the file should contain exactly 3 numbers separated by commas.")
+    if len(stats_lists)==2 and len(stats_lists[0])==3 and len(stats_lists[1])==3:
+        path_mean = stats_lists[0]
+        path_std = stats_lists[1]
+    if all(i >= 0.1 for i in path_mean) and all(i >=0.05 for i in path_std):
+        saved_stats = True
+        print("Read path_mean and path_std from saved_stats.csv")
+    else:
+        saved_stats = False # File exists, but did not read valid values
+        print("Unable to read path_mean and path_std from saved_stats.csv")
+
+if not saved_stats:
+    path_mean, path_std = compute_stats(folderpath=train_patches,
+                                        image_ext=args.image_ext)
+    if all(i >= 0.1 for i in path_mean) and all(i >=0.05 for i in path_std):
+        # Save stats file for later
+        import csv
+        data = [path_mean, path_std]
+        file = open(file_path, 'w', newline ='')
+        # writing the data into the file
+        with file:    
+            write = csv.writer(file)
+            write.writerows(data)
+        file.close()
+        print("Saved path_mean and path_std to saved_stats.csv")
 
 # Only used is resume_checkpoint is True.
 resume_checkpoint_path = args.checkpoints_folder.joinpath(args.checkpoint_file)
