@@ -369,6 +369,7 @@ val_patches = args.train_folder.joinpath("val")
 # Compute the mean and standard deviation of the image patches from the specified folder.
 # If a file of saved mean and standard deviation exists, use the saved values.
 file_path = 'saved_stats.csv'
+saved_stats = False
 if os.path.exists(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
@@ -390,8 +391,7 @@ if os.path.exists(file_path):
     if all(i >= 0.1 for i in path_mean) and all(i >=0.05 for i in path_std):
         saved_stats = True
         print("Read path_mean and path_std from saved_stats.csv")
-    else:
-        saved_stats = False # File exists, but did not read valid values
+    else:   # File exists, but did not read valid values
         print("Unable to read path_mean and path_std from saved_stats.csv")
 
 if not saved_stats:
