@@ -360,72 +360,76 @@ def produce_patches(input_folder: Path, output_folder: Path,
     start_time = time.time()
 
     for image_loc in image_locs:
-        image = imread(
-            uri=(image_loc if by_folder else input_folder.joinpath(image_loc)))
+        try:
+          image = imread(
+              uri=(image_loc if by_folder else input_folder.joinpath(image_loc)))
 
-        # Sources:
-        # 1. https://research.wmz.ninja/articles/2018/03/on-sharing-large-arrays-when-using-pythons-multiprocessing.html
-        # 2. https://stackoverflow.com/questions/33247262/the-corresponding-ctypes-type-of-a-numpy-dtype
-        # 3. https://stackoverflow.com/questions/7894791/use-numpy-array-in-shared-memory-for-multiprocessing
-        img = RawArray(
-            typecode_or_type=np.ctypeslib.as_ctypes_type(dtype=image.dtype),
-            size_or_initializer=image.size)
-        img_np = np.frombuffer(buffer=img,
-                               dtype=image.dtype).reshape(image.shape)
-        np.copyto(dst=img_np, src=image)
+          # Sources:
+          # 1. https://research.wmz.ninja/articles/2018/03/on-sharing-large-arrays-when-using-pythons-multiprocessing.html
+          # 2. https://stackoverflow.com/questions/33247262/the-corresponding-ctypes-type-of-a-numpy-dtype
+          # 3. https://stackoverflow.com/questions/7894791/use-numpy-array-in-shared-memory-for-multiprocessing
+          img = RawArray(
+              typecode_or_type=np.ctypeslib.as_ctypes_type(dtype=image.dtype),
+              size_or_initializer=image.size)
+          img_np = np.frombuffer(buffer=img,
+                                 dtype=image.dtype).reshape(image.shape)
+          np.copyto(dst=img_np, src=image)
 
-        # Number of x starting points.
-        x_steps = int((image.shape[0] - patch_size) / patch_size *
-                      inverse_overlap_factor) + 1
-        # Number of y starting points.
-        y_steps = int((image.shape[1] - patch_size) / patch_size *
-                      inverse_overlap_factor) + 1
-        # Step size, same for x and y.
-        step_size = int(patch_size / inverse_overlap_factor)
+          # Number of x starting points.
+          x_steps = int((image.shape[0] - patch_size) / patch_size *
+                        inverse_overlap_factor) + 1
+          # Number of y starting points.
+          y_steps = int((image.shape[1] - patch_size) / patch_size *
+                        inverse_overlap_factor) + 1
+          # Step size, same for x and y.
+          step_size = int(patch_size / inverse_overlap_factor)
 
-        # Create the queues for passing data back and forth.
-        in_queue = Queue()
-        out_queue = Queue(maxsize=-1)
+          # Create the queues for passing data back and forth.
+          in_queue = Queue()
+          out_queue = Queue(maxsize=-1)
 
-        # Create the processes for multiprocessing.
-        processes = [
-            Process(target=find_patch_mp,
-                    args=(functools.partial(
-                        find_patch,
-                        output_folder=output_folder,
-                        image=img_np,
-                        by_folder=by_folder,
-                        image_loc=image_loc,
-                        purple_threshold=purple_threshold,
-                        purple_scale_size=purple_scale_size,
-                        image_ext=image_ext,
-                        type_histopath=type_histopath,
-                        patch_size=patch_size), in_queue, out_queue))
-            for __ in range(num_workers)
-        ]
-        for p in processes:
-            p.daemon = True
-            p.start()
+          # Create the processes for multiprocessing.
+          processes = [
+              Process(target=find_patch_mp,
+                      args=(functools.partial(
+                          find_patch,
+                          output_folder=output_folder,
+                          image=img_np,
+                          by_folder=by_folder,
+                          image_loc=image_loc,
+                          purple_threshold=purple_threshold,
+                          purple_scale_size=purple_scale_size,
+                          image_ext=image_ext,
+                          type_histopath=type_histopath,
+                          patch_size=patch_size), in_queue, out_queue))
+              for __ in range(num_workers)
+          ]
+          for p in processes:
+              p.daemon = True
+              p.start()
 
-        # Put the (x, y) coordinates in the input queue.
-        for xy in itertools.product(range(0, x_steps * step_size, step_size),
-                                    range(0, y_steps * step_size, step_size)):
-            in_queue.put(obj=xy)
+          # Put the (x, y) coordinates in the input queue.
+          for xy in itertools.product(range(0, x_steps * step_size, step_size),
+                                      range(0, y_steps * step_size, step_size)):
+              in_queue.put(obj=xy)
 
-        # Store num_workers None values so the processes exit when not enough jobs left.
-        for __ in range(num_workers):
-            in_queue.put(obj=None)
+          # Store num_workers None values so the processes exit when not enough jobs left.
+          for __ in range(num_workers):
+              in_queue.put(obj=None)
 
-        num_patches = sum([out_queue.get() for __ in range(x_steps * y_steps)])
+          num_patches = sum([out_queue.get() for __ in range(x_steps * y_steps)])
 
-        # Join the processes as they finish.
-        for p in processes:
-            p.join(timeout=1)
+          # Join the processes as they finish.
+          for p in processes:
+              p.join(timeout=1)
 
-        if by_folder:
-            print(f"{image_loc}: num outputted windows: {num_patches}")
-        else:
-            outputted_patches += num_patches
+          if by_folder:
+              print(f"{image_loc}: num outputted windows: {num_patches}")
+          else:
+              outputted_patches += num_patches
+
+        except:
+          print(f"Unable to process {image_loc}.  Skipping")
 
     if not by_folder:
         print(
